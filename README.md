@@ -7,6 +7,7 @@ Epidemics require near real-time response to existing and emerging threats. In t
 
 This project will demonstrate an extensible, standards-based platform for ingesting, processing, and storing events that could be deployed as part of a PHSS. The system will automatically detect the creation of a new event schema and in response deploy a new API endpoint and Kafka topic. Long term storage and historical analysis will be supported by delivering events to data lake in S3. Real time processing and monitoring will be provided by KSQL streaming applications that display results in a Grafana interface.
 
+
 ### Example Events
 - Patient records
 - Police reports
@@ -19,16 +20,15 @@ This project will demonstrate an extensible, standards-based platform for ingest
 
 
 ## Tech Stack
-- Terraform (Configuration)
-- AWS Gateway (Load balancing, reverse proxy)
-- Python/Flask (Logging, schema validation, frontend logic)
+- AWS Gateway (Load balancing, reverse proxy, endpoint configuration)
+- Lambda (Logging, schema validation, frontend logic)
 - Kafka, KSQL (Ingestion, streaming)
 - S3 (Schema/query storage, data lake)
 - Grafana (UI dashboard)
 
 
 ## Data Source
-For this project I will leverage the [Indian Liver Patient Records](https://www.kaggle.com/uciml/indian-liver-patient-records) dataset (provided by Kaggle) to simulate a stream of incoming patient reports.
+For this project I will leverage California's [Public Patient Discharge Data](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/UBDMR6&version=1.0) (available [here](https://oshpd.ca.gov/data-and-reports/request-data/public-data/#top)) in order to simulate a stream of incoming patient records.
 
 
 ## Engineering Challenge
@@ -40,7 +40,7 @@ The primary users of a PHSS system are health care practitioners and analysts (n
 
 
 ##  MVP
-- REST API with single patient_record endpoint, pushing events to Kafka
+- Gateway endpoint + Lambda function to accept records, pushing events to Kafka
 - Kafka cluster with single patient_record topic
 - Kafka consumer/connector to S3 archival storage
 - KSQL application generating a symptom_alert
