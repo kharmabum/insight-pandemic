@@ -7,3 +7,5 @@
 build/
 
 **/[sS]ecrets*
+.terraform
+terraform.tfstate*
