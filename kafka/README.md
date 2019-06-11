@@ -1,13 +1,100 @@
 # Kafka
 
+## Requirements
+- 3 zookeeper nodes
+- 3 broker nodes
+
+These instances must be open to `ssh` and able to access S3. See associated resources in `insight-pandemic/terraform/main.tf`.
+
 ## Configuration
+First review [these instructions](https://docs.confluent.io/current/installation/installing_cp/zip-tar.html#prod-kafka-cli-install) for manually installing the Confluent platform on your instances.
 
-See [these instructions](https://docs.confluent.io/current/installation/installing_cp/zip-tar.html#prod-kafka-cli-install) for manually installing Zookeeper and broker nodes in a Kafka cluster. The configuration used for this project is stored at `insight-pandemic/kafka/config/confluent-5.2.1` and on S3. See the script in `kafka/config`. Steps were:
+1. Download the Confluent platform files
 
-1. Push zipped configuration to s3
-2. Pull down and unzip on nodes
-3. Run `echo '[1, 2, 3]' > /var/lib/zookeeper/myid` on Zookeeper nodes
-4. Start services (zookeeper nodes first)
-    - `./bin/zookeeper-server-start ./etc/kafka/zookeeper.properties`
-    - `./bin/schema-registry-start ./etc/schema-registry/schema-registry.properties`
-    - `./bin/kafka-server-start ./etc/kafka/server.properties`
+```
+curl -O http://packages.confluent.io/archive/5.2/confluent-5.2.1-2.12.tar.gz
+```
+
+2. Unzip contents
+
+```
+tar -zxvf confluent-5.2.1-2.12.tar.gz
+```
+
+3. Edit `./confluent-5.2.1-2.12/etc/kafka/zookeeper.properties` to exclusively include:
+
+```
+tickTime=2000
+dataDir=/var/lib/zookeeper/
+clientPort=2181
+initLimit=5
+syncLimit=2
+server.1=ZOOKEEPER-NODE-1-HOSTNAME:2888:3888
+server.2=ZOOKEEPER-NODE-2-HOSTNAME:2888:3888
+server.3=ZOOKEEPER-NODE-3-HOSTNAME:2888:3888
+autopurge.snapRetainCount=3
+autopurge.purgeInterval=24
+```
+
+4. Edit `./confluent-5.2.1-2.12/etc/kafka/server.properties` to include:
+
+```
+...
+zookeeper.connect=ZOOKEEPER-NODE-1-HOSTNAME:2181,ZOOKEEPER-NODE-2-HOSTNAME:2181,ZOOKEEPER-NODE-3-HOSTNAME:2181
+...
+
+#broker.id=0
+broker.id.generation.enable=true
+...
+num.partitions = 3
+...
+default.replication.factor = 2
+auto.create.topics.enable = true
+...
+
+```
+
+5. Repackage the Confluent platform files:
+
+```
+tar -cvzf confluent-5.2.1.tar.gz confluent-5.2.1
+```
+
+
+6. Upload `confluent-5.2.1.tar.gz` to the S3 bucket created by [terraform](../terraform/README.md) either via the `aws` cli or the S3 console.
+
+7. `ssh` into each Zookeeper node:
+
+```
+ssh -i ~/.ssh/{YOUR-SAVED-KEYPAIR-NAME}.pem ubuntu@{ZOOKEEPER-HOST}
+```
+
+8. On each Zookeeper node, run:
+
+```
+sudo -i
+curl -O https://YOUR-S3-BUCKET-NAME.s3-us-west-2.amazonaws.com/confluent-5.2.1.tar.gz
+tar -xvzf confluent-5.2.1.tar.gz
+mkdir /var/lib/zookeeper
+echo "UNIQUE-ID" > /var/lib/zookeeper/myid # these indicies must match those found in `zookeeper.properties`
+sudo apt-get update
+sudo apt-get install default-jre
+~/confluent-5.2.1/bin/zookeeper-server-start ~/confluent-5.2.1/etc/kafka/zookeeper.properties
+```
+
+9. `ssh` into each broker node:
+
+```
+ssh -i ~/.ssh/{YOUR-SAVED-KEYPAIR-NAME}.pem ubuntu@{BROKER-HOST}
+```
+
+10. On each broker node, run:
+
+```
+sudo -i
+curl -O https://YOUR-S3-BUCKET-NAME.s3-us-west-2.amazonaws.com/confluent-5.2.1.tar.gz
+tar -xvzf confluent-5.2.1.tar.gz
+sudo apt-get update
+sudo apt-get install default-jre
+~/confluent-5.2.1/bin/kafka-server-start ~/confluent-5.2.1/etc/kafka/server.properties
+```
