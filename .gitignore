@@ -9,3 +9,4 @@ build/
 **/[sS]ecrets*
 .terraform
 terraform.tfstate*
+kafka/config/confluent-5.2.1*
