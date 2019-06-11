@@ -30,7 +30,7 @@ module "vpc" {
 
   enable_dns_support   = true
   enable_dns_hostnames = true
-  enable_s3_endpoint = true
+  enable_s3_endpoint   = true
 
   tags = {
     Owner       = "${var.fellow_name}"
@@ -103,6 +103,27 @@ module "test_sg" {
     Environment = "dev"
     Terraform   = "true"
   }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Elastic IPs & VPC Endpoints
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+resource "aws_eip" "elastic_ips_kafka" {
+  vpc       = true
+  instance  = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
+  count     = "${length(aws_instance.zookeeper_nodes) + length(aws_instance.broker_nodes)}"
+}
+
+resource "aws_vpc_endpoint" "vpc_endpoint_s3" {
+  vpc_id             = "${module.vpc.vpc_id}"
+  service_name       = "com.amazonaws.${var.aws_region}.s3"
+}
+
+resource "aws_vpc_endpoint_route_table_association" "s3_route_table_association" {
+  route_table_id  = "${module.vpc.public_route_table_ids[0]}"
+  vpc_endpoint_id = "${aws_vpc_endpoint.vpc_endpoint_s3.id}"
 }
 
 
@@ -203,13 +224,18 @@ resource "aws_instance" "broker_nodes" {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-# Elastic IPs
+# S3 buckets
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-resource "aws_eip" "elastic_ips_kafka" {
-  vpc       = true
-  instance  = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
-  count     = "${length(aws_instance.zookeeper_nodes) + length(aws_instance.broker_nodes)}"
+resource "aws_s3_bucket" "insight_pandemic_s3b" {
+  bucket = "insight-pandemic" # this must be globally unique
+  acl    = "public-read"
+
+  tags = {
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
