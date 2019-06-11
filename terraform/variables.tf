@@ -19,11 +19,6 @@ variable "amis" {
 }
 
 
-variable "cluster_name" {
-  description = "The name for your instances in your cluster"
-}
-
-
 variable "aws_access_key" {
   description = "AWS access key (e.g. ABCDE1F2G3HIJKLMNOP )"
 }

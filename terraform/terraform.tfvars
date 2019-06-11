@@ -8,5 +8,4 @@ amis = {
   us-west-2 = "ami-0e63f50857fdc1f9f"
 }
 
-cluster_name = "cluster"
 server_port  = 8080

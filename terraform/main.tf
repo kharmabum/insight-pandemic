@@ -116,10 +116,10 @@ resource "aws_instance" "example" {
   instance_type               = "t2.micro"
   key_name                    = "${var.keypair_name}"
   count                       = 2
-  associate_public_ip_address = true
-  subnet_id = module.vpc.public_subnets[0]
 
-  vpc_security_group_ids = [
+  subnet_id                   = module.vpc.public_subnets[0]
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [
     "${module.default_sg.this_security_group_id}",
     "${module.open_ssh_sg.this_security_group_id}",
     "${module.test_sg.this_security_group_id}"
@@ -147,54 +147,58 @@ resource "aws_instance" "example" {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* Zookeeper nodes */
-resource "aws_instance" "cluster_master" {
+resource "aws_instance" "zookeeper_nodes" {
   ami             = "${lookup(var.amis, var.aws_region)}"
-  instance_type   = "m4.large"
+  instance_type   = "t2.large"
   key_name        = "${var.keypair_name}"
-  count           = 1
+  count           = 3
 
-  vpc_security_group_ids      = ["${module.open_all_sg.this_security_group_id}"]
-  subnet_id                   = "${module.vpc.public_subnets[0]}"
+  subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
+  vpc_security_group_ids      = [
+    "${module.default_sg.this_security_group_id}",
+    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
+  ]
 
   root_block_device {
-    volume_size = 100
-    volume_type = "standard"
+    volume_size = 30
+    volume_type = "gp2"
   }
 
-  tags {
-    Name        = "${var.cluster_name}-master-${count.index}"
+  tags = {
+    Name        = "kafka-zookeeper-${count.index}"
     Owner       = "${var.fellow_name}"
     Environment = "dev"
     Terraform   = "true"
-    HadoopRole  = "master"
-    SparkRole   = "master"
+    role        = "zookeeper"
   }
 }
 
 /* Broker nodes */
-resource "aws_instance" "cluster_workers" {
+resource "aws_instance" "broker_nodes" {
   ami             = "${lookup(var.amis, var.aws_region)}"
-  instance_type   = "m4.large"
+  instance_type   = "t2.xlarge"
   key_name        = "${var.keypair_name}"
   count           = 3
 
-  vpc_security_group_ids      = ["${module.open_all_sg.this_security_group_id}"]
-  subnet_id                   = "${module.vpc.public_subnets[0]}"
+  subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
+  vpc_security_group_ids      = [
+    "${module.default_sg.this_security_group_id}",
+    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
+  ]
 
   root_block_device {
-      volume_size = 7
-      volume_type = "standard"
+      volume_size = 250
+      volume_type = "gp2"
   }
 
-  tags {
-    Name        = "${var.cluster_name}-worker-${count.index}"
+  tags = {
+    Name        = "kafka-broker-${count.index}"
     Owner       = "${var.fellow_name}"
     Environment = "dev"
     Terraform   = "true"
-    HadoopRole  = "worker"
-    SparkRole   = "worker"
+    role        = "broker"
   }
 }
 
@@ -202,8 +206,19 @@ resource "aws_instance" "cluster_workers" {
 # Elastic IPs & ELB Volumes
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-resource "aws_eip" "elastic_ips_for_instances" {
+resource "aws_eip" "elastic_ips_kafka" {
   vpc       = true
-  instance  = "${element(concat(aws_instance.cluster_master.*.id, aws_instance.cluster_workers.*.id), count.index)}"
-  count     = "${aws_instance.cluster_master.count + aws_instance.cluster_workers.count}"
+  instance  = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
+  count     = "${length(aws_instance.zookeeper_nodes) + length(aws_instance.broker_nodes)}"
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Deployment targets TODO#2: Replace with separate components
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+resource "null_resource" "kafka_cluster" {
+  depends_on = [
+    "aws_instance.zookeeper_nodes",
+    "aws_instance.broker_nodes"
+  ]
 }

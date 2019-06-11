@@ -9,6 +9,7 @@
 
 ## Provisioning Infrastructure
 
+- WARNING: Provisioning these resources is beyond the scope of AWS Free Tier.
 - From within `insight-pandemic` run:
 
 ```
