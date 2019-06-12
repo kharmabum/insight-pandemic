@@ -61,12 +61,12 @@ tar -cvzf confluent-5.2.1.tar.gz confluent-5.2.1
 ```
 
 
-6. Upload `confluent-5.2.1.tar.gz` to the S3 bucket created by [terraform](../terraform/README.md) either via the `aws` cli or the S3 console.
+6. Upload `confluent-5.2.1.tar.gz` to the S3 bucket created by [Terraform](../terraform/README.md) either via the `aws` cli or the S3 console.
 
 7. `ssh` into each Zookeeper node:
 
 ```
-ssh -i ~/.ssh/{YOUR-SAVED-KEYPAIR-NAME}.pem ubuntu@{ZOOKEEPER-HOST}
+ssh -i ~/.ssh/YOUR-SAVED-KEYPAIR-NAME.pem ubuntu@ZOOKEEPER-HOST
 ```
 
 8. On each Zookeeper node, run:
@@ -76,7 +76,7 @@ sudo -i
 curl -O https://YOUR-S3-BUCKET-NAME.s3-us-west-2.amazonaws.com/confluent-5.2.1.tar.gz
 tar -xvzf confluent-5.2.1.tar.gz
 mkdir /var/lib/zookeeper
-echo "UNIQUE-ID" > /var/lib/zookeeper/myid # these indicies must match those found in `zookeeper.properties`
+echo "UNIQUE-ID" > /var/lib/zookeeper/myid # these ids must match those found in `zookeeper.properties`
 sudo apt-get update
 sudo apt-get install default-jre
 ~/confluent-5.2.1/bin/zookeeper-server-start ~/confluent-5.2.1/etc/kafka/zookeeper.properties
@@ -85,7 +85,7 @@ sudo apt-get install default-jre
 9. `ssh` into each broker node:
 
 ```
-ssh -i ~/.ssh/{YOUR-SAVED-KEYPAIR-NAME}.pem ubuntu@{BROKER-HOST}
+ssh -i ~/.ssh/YOUR-SAVED-KEYPAIR-NAME.pem ubuntu@BROKER-HOST
 ```
 
 10. On each broker node, run:
