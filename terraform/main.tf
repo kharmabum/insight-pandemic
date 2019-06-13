@@ -96,7 +96,27 @@ module "test_sg" {
     }
   ]
 
-  egress_rules        = ["all-all"]
+  egress_rules  = ["all-all"]
+
+  tags = {
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+  }
+}
+
+module "kafka_sg" {
+  source  = "terraform-aws-modules/security-group/aws//modules/kafka"
+  version = "~> v3.0"
+
+  name        = "kafka_sg"
+  description = "Security group for broker nodes. Permits inbound tcp on 9092 and all-all egress."
+  vpc_id      = "${module.vpc.vpc_id}"
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_rules       = ["kafka-broker-tcp"]
+  egress_rules        = []
+
 
   tags = {
     Owner       = "${var.fellow_name}"
