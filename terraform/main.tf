@@ -178,7 +178,7 @@ resource "aws_instance" "zookeeper_nodes" {
   associate_public_ip_address = true
   vpc_security_group_ids      = [
     "${module.default_sg.this_security_group_id}",
-    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
+   #"${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
   ]
 
   root_block_device {
@@ -206,7 +206,8 @@ resource "aws_instance" "broker_nodes" {
   associate_public_ip_address = true
   vpc_security_group_ids      = [
     "${module.default_sg.this_security_group_id}",
-    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
+    "${module.kafka_sg.this_security_group_id}",
+   #"${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
   ]
 
   root_block_device {
