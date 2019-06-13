@@ -45,6 +45,34 @@ module "vpc" {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+module "ksql_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> v3.0"
+
+  name    = "ksql-sg"
+  vpc_id  = "${module.vpc.vpc_id}"
+
+  # Inbound tcp traffic to 8088 from anywhere (can restrict to control center or lambda)
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 8088
+      to_port     = 8088
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  # Allow all outbound
+  egress_rules  = ["all-all"]
+
+  tags = {
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+  }
+
+}
+
 module "open_ssh_sg" {
   source  = "terraform-aws-modules/security-group/aws//modules/ssh"
   version = "~> v3.0"
@@ -72,31 +100,6 @@ module "default_sg" {
 
   ingress_with_self = [{ rule = "all-all" }]
   egress_with_self  = [{ rule = "all-all" }]
-
-  tags = {
-    Owner       = "${var.fellow_name}"
-    Environment = "dev"
-    Terraform   = "true"
-  }
-}
-
-module "test_sg" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> v3.0"
-
-  name        = "test-sg"
-  vpc_id      = "${module.vpc.vpc_id}"
-
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = 80
-      to_port     = 8080
-      protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
-
-  egress_rules  = ["all-all"]
 
   tags = {
     Owner       = "${var.fellow_name}"
@@ -151,7 +154,6 @@ module "control_center_sg" {
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 # Elastic IPs & VPC Endpoints
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -160,6 +162,11 @@ resource "aws_eip" "elastic_ips_kafka" {
   vpc       = true
   instance  = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
   count     = "${length(aws_instance.zookeeper_nodes) + length(aws_instance.broker_nodes)}"
+}
+
+resource "aws_eip" "elastic_ip_ksql" {
+  vpc       = true
+  instance  = "${aws_instance.ksql_server.id}"
 }
 
 resource "aws_vpc_endpoint" "vpc_endpoint_s3" {
@@ -174,37 +181,34 @@ resource "aws_vpc_endpoint_route_table_association" "s3_route_table_association"
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-# Test instances
+# KSQL instance
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-resource "aws_instance" "example" {
+resource "aws_instance" "ksql_server" {
   ami                         = "${lookup(var.amis, var.aws_region)}"
-  instance_type               = "t2.micro"
+  instance_type               = "t2.large"
   key_name                    = "${var.keypair_name}"
-  count                       = 2
 
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
   vpc_security_group_ids      = [
     "${module.default_sg.this_security_group_id}",
-    "${module.open_ssh_sg.this_security_group_id}",
-    "${module.test_sg.this_security_group_id}"
+    "${module.ksql_sg.this_security_group_id}",
+    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
   ]
-
-  user_data = <<-EOF
-              #!/bin/bash
-              echo "Hello, World" > index.html
-              python3 -m http.server 8080 &
-              EOF
 
   root_block_device {
       volume_type = "standard"
-      volume_size = 11
+      volume_size = 10
   }
 
   tags = {
-    Name = "terraform-example"
+    Name        = "ksql_server"
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+    role        = "worker"
   }
 }
 
@@ -296,7 +300,6 @@ resource "null_resource" "deploy_vpc" {
     "module.vpc",
     "module.open_ssh_sg",
     "module.default_sg",
-    "module.test_sg"
   ]
 }
 
