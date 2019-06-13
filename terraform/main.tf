@@ -125,6 +125,32 @@ module "kafka_sg" {
   }
 }
 
+module "control_center_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> v3.0"
+
+  name        = "control-center-sg"
+  vpc_id      = "${module.vpc.vpc_id}"
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 9021
+      to_port     = 9021
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  egress_rules  = ["all-all"]
+
+  tags = {
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+  }
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 # Elastic IPs & VPC Endpoints
@@ -198,7 +224,8 @@ resource "aws_instance" "zookeeper_nodes" {
   associate_public_ip_address = true
   vpc_security_group_ids      = [
     "${module.default_sg.this_security_group_id}",
-   #"${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
+    "${module.kafka_sg.this_security_group_id}",
+    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
   ]
 
   root_block_device {
@@ -227,7 +254,8 @@ resource "aws_instance" "broker_nodes" {
   vpc_security_group_ids      = [
     "${module.default_sg.this_security_group_id}",
     "${module.kafka_sg.this_security_group_id}",
-   #"${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
+    "${module.control_center_sg.this_security_group_id}",
+    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
   ]
 
   root_block_device {
