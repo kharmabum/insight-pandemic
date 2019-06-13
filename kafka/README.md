@@ -3,11 +3,12 @@
 ## Requirements
 - 3 zookeeper nodes
 - 3 broker nodes
+- `tmux` is required to run the producer script
 
 These instances must be open to `ssh` and able to access S3. See associated resources in `insight-pandemic/terraform/main.tf`.
 
 ## Configuration
-First review [these instructions](https://docs.confluent.io/current/installation/installing_cp/zip-tar.html#prod-kafka-cli-install) for manually installing the Confluent platform on your instances.
+First review [these instructions](https://docs.confluent.io/current/installation/installing_cp/zip-tar.html#prod-kafka-cli-install) for manually installing the Confluent platform on your instances. The Apache Kafka [QuickStart](https://kafka.apache.org/documentation.html#quickstart) documentation is also quite helpful.
 
 1. Download the Confluent platform files
 
@@ -36,11 +37,13 @@ autopurge.snapRetainCount=3
 autopurge.purgeInterval=24
 ```
 
-4. Edit `./confluent-5.2.1-2.12/etc/kafka/server.properties` to include:
+4. Edit `./confluent-5.2.1-2.12/etc/kafka/server.properties` to include, leave the rest as is:
 
 ```
 ...
 zookeeper.connect=ZOOKEEPER-NODE-1-HOSTNAME:2181,ZOOKEEPER-NODE-2-HOSTNAME:2181,ZOOKEEPER-NODE-3-HOSTNAME:2181
+...
+listeners=PLAINTEXT://0.0.0.0:9092
 ...
 
 #broker.id=0
@@ -94,6 +97,7 @@ ssh -i ~/.ssh/YOUR-SAVED-KEYPAIR-NAME.pem ubuntu@BROKER-HOST
 sudo -i
 curl -O https://YOUR-S3-BUCKET-NAME.s3-us-west-2.amazonaws.com/confluent-5.2.1.tar.gz
 tar -xvzf confluent-5.2.1.tar.gz
+echo "advertised.listeners=THIS_BROKER_HOST_PUBLIC_DNS:9092" >> ~/confluent-5.2.1/etc/kafka/server.properties
 sudo apt-get update
 sudo apt-get install default-jre
 ~/confluent-5.2.1/bin/kafka-server-start ~/confluent-5.2.1/etc/kafka/server.properties
