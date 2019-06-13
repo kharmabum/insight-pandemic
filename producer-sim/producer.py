@@ -11,7 +11,11 @@ class Producer(object):
 
     def __init__(self, hosts):
         print(hosts)
-        self.producer = KafkaProducer(bootstrap_servers=hosts, value_serializer=lambda m: json.dumps(m).encode('ascii'))
+        self.producer = KafkaProducer(
+            bootstrap_servers=hosts,
+            value_serializer=lambda
+            m: json.dumps(m).encode('ascii')
+            )
 
 
     def produce_msgs(self):
@@ -36,15 +40,14 @@ class Producer(object):
                 return
 
             # Successful result returns assigned partition and offset
-            print (record_metadata.topic)
-            print (record_metadata.partition)
-            print (record_metadata.offset)
+            print(record_metadata.topic)
+            print(record_metadata.partition)
+            print(record_metadata.offset)
 
             #time.sleep(5) # wait 5 seconds
 
             # block until all async messages are sent
             # self.producer.flush()
-
 
             # def on_send_success(record_metadata):
             #     print(record_metadata.topic)
