@@ -3,7 +3,6 @@
 ## Requirements
 - 3 zookeeper nodes
 - 3 broker nodes
-- `tmux` is required to run the producer script
 
 These instances must be open to `ssh` and able to access S3. See associated resources in `insight-pandemic/terraform/main.tf`.
 
