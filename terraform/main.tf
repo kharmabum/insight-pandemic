@@ -199,7 +199,7 @@ resource "aws_vpc_endpoint_route_table_association" "s3_route_table_association"
 
 resource "aws_instance" "ksql_server" {
   ami                         = "${lookup(var.amis, var.aws_region)}"
-  instance_type               = "t2.large"
+  instance_type               = "t2.medium"
   key_name                    = "${var.keypair_name}"
 
   subnet_id                   = module.vpc.public_subnets[0]
@@ -232,7 +232,7 @@ resource "aws_instance" "ksql_server" {
 /* Zookeeper nodes */
 resource "aws_instance" "zookeeper_nodes" {
   ami             = "${lookup(var.amis, var.aws_region)}"
-  instance_type   = "t2.large"
+  instance_type   = "t2.medium"
   key_name        = "${var.keypair_name}"
   count           = 3
 
@@ -261,7 +261,7 @@ resource "aws_instance" "zookeeper_nodes" {
 /* Broker nodes */
 resource "aws_instance" "broker_nodes" {
   ami             = "${lookup(var.amis, var.aws_region)}"
-  instance_type   = "t2.xlarge"
+  instance_type   = "t2.large"
   key_name        = "${var.keypair_name}"
   count           = 3
 
