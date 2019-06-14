@@ -158,15 +158,27 @@ module "control_center_sg" {
 # Elastic IPs & VPC Endpoints
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 resource "aws_eip" "elastic_ips_kafka" {
-  vpc       = true
-  instance  = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
-  count     = "${length(aws_instance.zookeeper_nodes) + length(aws_instance.broker_nodes)}"
+  vpc   = true
+  count = "${length(aws_instance.zookeeper_nodes) + length(aws_instance.broker_nodes)}"
+}
+
+resource "aws_eip_association" "eip_assoc_kafka" {
+  vpc           = true
+  instance      = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
+  allocation_id = "${element(aws_eip.elastic_ips_kafka.*.id), count.index)}"
+  count         = "${length(aws_instance.zookeeper_nodes) + length(aws_instance.broker_nodes)}"
 }
 
 resource "aws_eip" "elastic_ip_ksql" {
-  vpc       = true
-  instance  = "${aws_instance.ksql_server.id}"
+  vpc = true
+}
+
+resource "aws_eip_association" "eip_assoc_kafka" {
+  vpc           = true
+  instance      = "${aws_instance.ksql_server.id}"
+  allocation_id = "${aws_eip.elastic_ip_ksql.id}"
 }
 
 resource "aws_vpc_endpoint" "vpc_endpoint_s3" {
@@ -289,23 +301,4 @@ resource "aws_s3_bucket" "insight_pandemic_s3b" {
     Environment = "dev"
     Terraform   = "true"
   }
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-# Deployment targets TODO#2: Replace with separate components
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-resource "null_resource" "deploy_vpc" {
-  depends_on = [
-    "module.vpc",
-    "module.open_ssh_sg",
-    "module.default_sg",
-  ]
-}
-
-resource "null_resource" "kafka_cluster" {
-  depends_on = [
-    "aws_instance.zookeeper_nodes",
-    "aws_instance.broker_nodes"
-  ]
 }
