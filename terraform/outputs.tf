@@ -1,19 +1,28 @@
- # output "cluster_size" {
- #    value = "${aws_instance.cluster_master.count + aws_instance.cluster_workers.count}"
- # }
-
-output "example_0_public_ip" {
-  value = "${aws_instance.example.0.public_ip}"
+output "kafka_zookeeper_0_dns" {
+  value = "${aws_eip.elastic_ips_kafka.0.public_dns}"
 }
 
-output "example_1_public_ip" {
-  value = "${aws_instance.example.1.public_ip}"
+output "kafka_zookeeper_1_dns" {
+  value = "${aws_eip.elastic_ips_kafka.1.public_dns}"
 }
 
-# output "app.0.ip" {
-#   value = "${aws_instance.app.0.private_ip}"
-# }
 
-# output "app.1.ip" {
-#   value = "${aws_instance.app.1.private_ip}"
-# }
+output "kafka_zookeeper_2_dns" {
+  value = "${aws_eip.elastic_ips_kafka.2.public_dns}"
+}
+
+output "kafka_broker_0_dns" {
+  value = "${aws_eip.elastic_ips_kafka.3.public_dns}"
+}
+
+output "kafka_broker_1_dns" {
+  value = "${aws_eip.elastic_ips_kafka.4.public_dns}"
+}
+
+output "kafka_broker_2_dns" {
+  value = "${aws_eip.elastic_ips_kafka.5.public_dns}"
+}
+
+output "kafka_ksql_dns" {
+  value = "${aws_eip.elastic_ip_ksql.public_dns}"
+}

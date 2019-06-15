@@ -29,6 +29,11 @@ variable "aws_secret_key" {
 }
 
 
-variable "server_port" {
-  description = "The port the server will use for HTTP requests"
+variable "kafka_zookeeper_count" {
+  description = "The number of Zookeeper nodes in the Kafka cluster"
+}
+
+
+variable "kafka_broker_count" {
+  description = "The number of broker nodes in the Kafka cluster"
 }

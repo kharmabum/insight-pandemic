@@ -8,4 +8,5 @@ amis = {
   us-west-2 = "ami-0e63f50857fdc1f9f"
 }
 
-server_port  = 8080
+kafka_zookeeper_count = 3
+kafka_broker_count    = 3

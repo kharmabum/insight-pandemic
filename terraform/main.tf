@@ -6,12 +6,15 @@ provider "aws" {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-# Data sources
+# Data sources, local variables
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 data "aws_availability_zones" "all" {}
 
+locals {
+  kafka_cluster_size = "${var.kafka_zookeeper_count + var.kafka_broker_count}"
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 # VPC
@@ -44,34 +47,6 @@ module "vpc" {
 # Security groups
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-module "ksql_sg" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> v3.0"
-
-  name    = "ksql-sg"
-  vpc_id  = "${module.vpc.vpc_id}"
-
-  # Inbound tcp traffic to 8088 from anywhere (can restrict to control center or lambda)
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = 8088
-      to_port     = 8088
-      protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
-
-  # Allow all outbound
-  egress_rules  = ["all-all"]
-
-  tags = {
-    Owner       = "${var.fellow_name}"
-    Environment = "dev"
-    Terraform   = "true"
-  }
-
-}
 
 module "open_ssh_sg" {
   source  = "terraform-aws-modules/security-group/aws//modules/ssh"
@@ -153,6 +128,33 @@ module "control_center_sg" {
   }
 }
 
+module "ksql_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> v3.0"
+
+  name    = "ksql-sg"
+  vpc_id  = "${module.vpc.vpc_id}"
+
+  # Inbound tcp traffic to 8088 from anywhere (can restrict to control center or lambda)
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 8088
+      to_port     = 8088
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  # Allow all outbound
+  egress_rules  = ["all-all"]
+
+  tags = {
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+  }
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 # Elastic IPs & VPC Endpoints
@@ -161,23 +163,21 @@ module "control_center_sg" {
 
 resource "aws_eip" "elastic_ips_kafka" {
   vpc   = true
-  count = "${length(aws_instance.zookeeper_nodes) + length(aws_instance.broker_nodes)}"
+  count = "${local.kafka_cluster_size}"
 }
 
 resource "aws_eip_association" "eip_assoc_kafka" {
-  vpc           = true
-  instance      = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
-  allocation_id = "${element(aws_eip.elastic_ips_kafka.*.id), count.index)}"
-  count         = "${length(aws_instance.zookeeper_nodes) + length(aws_instance.broker_nodes)}"
+  instance_id   = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
+  allocation_id = "${element(aws_eip.elastic_ips_kafka.*.id, count.index)}"
+  count         = "${local.kafka_cluster_size}"
 }
 
 resource "aws_eip" "elastic_ip_ksql" {
   vpc = true
 }
 
-resource "aws_eip_association" "eip_assoc_kafka" {
-  vpc           = true
-  instance      = "${aws_instance.ksql_server.id}"
+resource "aws_eip_association" "eip_assoc_ksql" {
+  instance_id   = "${aws_instance.ksql_server.id}"
   allocation_id = "${aws_eip.elastic_ip_ksql.id}"
 }
 
@@ -234,7 +234,7 @@ resource "aws_instance" "zookeeper_nodes" {
   ami             = "${lookup(var.amis, var.aws_region)}"
   instance_type   = "t2.medium"
   key_name        = "${var.keypair_name}"
-  count           = 3
+  count           = "${var.kafka_zookeeper_count}"
 
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
@@ -263,7 +263,7 @@ resource "aws_instance" "broker_nodes" {
   ami             = "${lookup(var.amis, var.aws_region)}"
   instance_type   = "t2.large"
   key_name        = "${var.keypair_name}"
-  count           = 3
+  count           = "${var.kafka_broker_count}"
 
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
