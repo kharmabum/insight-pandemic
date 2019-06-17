@@ -140,7 +140,7 @@ module "ksql_sg" {
     {
       from_port   = 8088
       to_port     = 8088
-      protocol    = "tcp"
+      protocol    = "all"
       cidr_blocks = "0.0.0.0/0"
     }
   ]
