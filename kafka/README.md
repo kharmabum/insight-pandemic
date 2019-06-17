@@ -48,7 +48,7 @@ listeners=PLAINTEXT://0.0.0.0:9092
 #broker.id=0
 broker.id.generation.enable=true
 ...
-num.partitions = 3
+num.partitions = 30
 ...
 default.replication.factor = 2
 auto.create.topics.enable = true
@@ -59,7 +59,7 @@ auto.create.topics.enable = true
 5. Repackage the Confluent platform files:
 
 ```
-tar -cvzf confluent-5.2.1.tar.gz confluent-5.2.1
+tar -cvzhf confluent-5.2.1.tar.gz confluent-5.2.1
 ```
 
 
@@ -96,7 +96,7 @@ ssh -i ~/.ssh/YOUR-SAVED-KEYPAIR-NAME.pem ubuntu@BROKER-HOST
 sudo -i
 curl -O https://YOUR-S3-BUCKET-NAME.s3-us-west-2.amazonaws.com/confluent-5.2.1.tar.gz
 tar -xvzf confluent-5.2.1.tar.gz
-echo "advertised.listeners=THIS_BROKER_HOST_PUBLIC_DNS:9092" >> ~/confluent-5.2.1/etc/kafka/server.properties
+echo "advertised.listeners=PLAINTEXT://THIS_BROKER_HOST_PUBLIC_DNS:9092" >> ~/confluent-5.2.1/etc/kafka/server.properties
 sudo apt-get update
 sudo apt-get install default-jre
 ~/confluent-5.2.1/bin/kafka-server-start ~/confluent-5.2.1/etc/kafka/server.properties
