@@ -241,6 +241,7 @@ resource "aws_instance" "zookeeper_nodes" {
   vpc_security_group_ids      = [
     "${module.default_sg.this_security_group_id}",
     "${module.kafka_sg.this_security_group_id}",
+    "${module.control_center_sg.this_security_group_id}",
     "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
   ]
 

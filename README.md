@@ -193,7 +193,7 @@ KSQL is a querying engine built on top of Kafka Streams (see [here](https://docs
 - A running KSQL server.
 - The KSQL CLI (a component of the Confluent platform)
 
-See associated resources in `terraform/main.tf` and `kafka/config/ksql-server.properties`. Instructions for deploying KSQL to an individual instance or cluster are available on Confluent's [website](https://docs.confluent.io/current/ksql/docs/installation/installing.html).
+See associated resources in `terraform/main.tf` and `kafka/config/ksql-server.properties`. Instructions for deploying a KSQL server to an individual instance or cluster are available on Confluent's [website](https://docs.confluent.io/current/ksql/docs/installation/installing.html).
 
 ### Running KSQL queries
 
