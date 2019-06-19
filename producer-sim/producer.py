@@ -62,9 +62,9 @@ class Producer(object):
 
             def on_send_success(record_metadata):
                 if config.is_verbose:
-                    print("topic: " + record_metadata.topic)
-                    print("partition: " + record_metadata.partition)
-                    print("offset: " + record_metadata.offset)
+                    print("topic: " + str(record_metadata.topic))
+                    print("partition: " + str(record_metadata.partition))
+                    print("offset: " + str(record_metadata.offset))
 
             def on_send_error(excp):
                 if config.is_verbose:
