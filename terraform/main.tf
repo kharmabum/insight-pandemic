@@ -181,6 +181,15 @@ resource "aws_eip_association" "eip_assoc_ksql" {
   allocation_id = "${aws_eip.elastic_ip_ksql.id}"
 }
 
+resource "aws_eip" "elastic_ip_connector" {
+  vpc = true
+}
+
+resource "aws_eip_association" "eip_assoc_connector" {
+  instance_id   = "${aws_instance.connector_server.id}"
+  allocation_id = "${aws_eip.elastic_ip_connector.id}"
+}
+
 resource "aws_vpc_endpoint" "vpc_endpoint_s3" {
   vpc_id             = "${module.vpc.vpc_id}"
   service_name       = "com.amazonaws.${var.aws_region}.s3"
@@ -288,6 +297,39 @@ resource "aws_instance" "broker_nodes" {
     role        = "broker"
   }
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Connector instance
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+resource "aws_instance" "connector_server" {
+  ami                         = "${lookup(var.amis, var.aws_region)}"
+  instance_type               = "t2.medium"
+  key_name                    = "${var.keypair_name}"
+  iam_instance_profile        = "S3-Sink-EC2-Instance-Profile"
+
+  subnet_id                   = module.vpc.public_subnets[0]
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [
+    "${module.default_sg.this_security_group_id}",
+    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
+  ]
+
+  root_block_device {
+      volume_type = "standard"
+      volume_size = 10
+  }
+
+  tags = {
+    Name        = "connector_server"
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+    role        = "worker"
+  }
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 # S3 buckets

@@ -64,13 +64,27 @@ Pandemic uses Terraform to specify and provision all required infrastructure (VP
 ### Requirements
 
 - Terraform `0.12.x`
-- AWS Account and IAM user (full EC2 permissions enabled) with associated key and secret stored in `secrets.auto.tfvars`
 - A premade AWS keypair, see `keypair_name` in `terraform/terraform.tfvars`
+- AWS Account and IAM user with associated key and secret stored in `secrets.auto.tfvars`. This user should have, at a minimum, a policy with
+full EC2 and IAM pass role access, for example:
+```
+{
+      "Version": "2012-10-17",
+      "Statement": [{
+        "Effect": "Allow",
+        "Action": [
+          "iam:PassRole",
+          "ec2:*"
+        ],
+        "Resource": "*"
+      }]
+    }
+```
 
 ### Deploy Instructions
 
 - **WARNING**: Provisioning these resources is beyond the scope of AWS Free Tier.
-- Run `terraform apply` and approve changes.
+- Run `terraform init && terraform apply` and approve changes.
 - To destroy all created resources, run `terraform destroy`
 
 ## Kafka
@@ -206,4 +220,42 @@ CREATE TABLE ED_RAW_PER_FACILITY_PER_MINUTE AS
   FROM ED_RAW
   WINDOW TUMBLING (SIZE 1 MINUTE)
   GROUP BY fac_id;
+```
+
+To start the KSQL CLI, run:
+
+```
+> confluent-5.2.1/bin/ksql http://<KSQL-SERVER-HOST>:8088
+ksql> SHOW TOPICS;
+```
+
+## Kafka Connectors (Elasticsearch, S3)
+
+### Requirements
+
+- IAM policy allow, at a minimum, puts to S3, e.g:
+
+```
+{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": "s3:*",
+                "Resource": [
+                    "arn:aws:s3:::insight-pandemic/*"
+                ]
+            }
+        ]
+    }
+```
+- IAM role (instance profile) with above policy, see usage of `"S3-Sink-EC2-Instance-Profile"` in `terraform/main.tf`
+
+### Running Kafka Connectors (Standalone)
+
+```
+confluent-hub install confluentinc/kafka-connect-s3:latest
+confluent-hub install confluentinc/kafka-connect-elasticsearch:latest
+bin/connect-standalone worker.properties connector1.properties [connector2.properties connector3.properties ...]
+# example: confluent-5.2.1/bin/connect-standalone confluent-5.2.1/etc/kafka/connect-standalone.properties confluent-5.2.1/etc/kafka-connect-s3/quickstart-s3.properties
 ```

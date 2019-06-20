@@ -26,3 +26,11 @@ output "kafka_broker_2_dns" {
 output "kafka_ksql_dns" {
   value = "${aws_eip.elastic_ip_ksql.public_dns}"
 }
+
+output "kafka_connector_dns" {
+  value = "${aws_eip.elastic_ip_connector.public_dns}"
+}
+
+# output "es_kibana_dns" {
+#   value = "${aws_eip.elastic_ip_es_kibana.public_dns}"
+# }
