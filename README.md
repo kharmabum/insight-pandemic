@@ -25,6 +25,7 @@ Pandemic includes several interacting components. For details on planned and tag
 1. [Provisioning – Terraform](#provisioning)
 1. [Ingestion – Kafka](#kafka)
 1. [Queries – KSQL](#ksql)
+1. [Connectors (Sinks) – S3 and Elasticsearch](#kafka-connectors)
 
 ### Architecture
 <img alt="architecture" src="https://i.imgur.com/FQQ1LiA.png" width="1000px">
@@ -229,11 +230,11 @@ To start the KSQL CLI, run:
 ksql> SHOW TOPICS;
 ```
 
-## Kafka Connectors (Elasticsearch, S3)
+## Kafka Connectors
 
 ### Requirements
 
-- IAM policy allow, at a minimum, puts to S3, e.g:
+- IAM policy permitting, at a minimum, PUTs to S3, e.g:
 
 ```
 {
@@ -243,13 +244,13 @@ ksql> SHOW TOPICS;
                 "Effect": "Allow",
                 "Action": "s3:*",
                 "Resource": [
-                    "arn:aws:s3:::insight-pandemic/*"
+                    "arn:aws:s3:::<YOUR-BUCKET-NAME>/*"
                 ]
             }
         ]
     }
 ```
-- IAM role (instance profile) with above policy, see usage of `"S3-Sink-EC2-Instance-Profile"` in `terraform/main.tf`
+- IAM role ("instance profile") with above policy, see usage of `"S3-Sink-EC2-Instance-Profile"` in `terraform/main.tf`
 
 ### Running Kafka Connectors (Standalone)
 
