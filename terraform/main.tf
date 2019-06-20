@@ -155,6 +155,33 @@ module "ksql_sg" {
   }
 }
 
+module "elasticsearch_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> v3.0"
+
+  name    = "elasticsearch-sg"
+  vpc_id  = "${module.vpc.vpc_id}"
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 5601 # kibana
+      to_port     = 5601
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      rule        = "elasticsearch-rest-tcp"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  tags = {
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+  }
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 # Elastic IPs & VPC Endpoints
@@ -179,6 +206,15 @@ resource "aws_eip" "elastic_ip_ksql" {
 resource "aws_eip_association" "eip_assoc_ksql" {
   instance_id   = "${aws_instance.ksql_server.id}"
   allocation_id = "${aws_eip.elastic_ip_ksql.id}"
+}
+
+resource "aws_eip" "elastic_ip_es_kibana" {
+  vpc = true
+}
+
+resource "aws_eip_association" "eip_assoc_es_kibana" {
+  instance_id   = "${aws_instance.es_kibana_server.id}"
+  allocation_id = "${aws_eip.elastic_ip_es_kibana.id}"
 }
 
 resource "aws_eip" "elastic_ip_connector" {
@@ -327,6 +363,39 @@ resource "aws_instance" "connector_server" {
     Environment = "dev"
     Terraform   = "true"
     role        = "worker"
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Elasticsearch + Kibana instance
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+resource "aws_instance" "es_kibana_server" {
+  ami                         = "${lookup(var.amis, var.aws_region)}"
+  instance_type               = "t2.medium"
+  key_name                    = "${var.keypair_name}"
+
+  subnet_id                   = module.vpc.public_subnets[0]
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [
+    "${module.default_sg.this_security_group_id}",
+    "${module.elasticsearch_sg.this_security_group_id}",
+    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
+  ]
+
+  root_block_device {
+      volume_type = "standard"
+      volume_size = 10
+  }
+
+  tags = {
+    Name        = "es_kibana_server"
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+    role        = "analytics"
   }
 }
 

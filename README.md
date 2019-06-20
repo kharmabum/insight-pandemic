@@ -25,7 +25,8 @@ Pandemic includes several interacting components. For details on planned and tag
 1. [Provisioning – Terraform](#provisioning)
 1. [Ingestion – Kafka](#kafka)
 1. [Queries – KSQL](#ksql)
-1. [Connectors (Sinks) – S3 and Elasticsearch](#kafka-connectors)
+1. [Connectors/Sinks – S3 and Elasticsearch](#kafka-connectors)
+1. [Dashboard - Kibana](#elasticsearch-and-kibana)
 
 ### Architecture
 <img alt="architecture" src="https://i.imgur.com/FQQ1LiA.png" width="1000px">
@@ -234,6 +235,7 @@ ksql> SHOW TOPICS;
 
 ### Requirements
 
+- At least one EC2 instance, see `connector_server` in `terraform/main.tf`
 - IAM policy permitting, at a minimum, PUTs to S3, e.g:
 
 ```
@@ -254,9 +256,63 @@ ksql> SHOW TOPICS;
 
 ### Running Kafka Connectors (Standalone)
 
+On your EC2 instance, install the Confluent Platform (see Kafka instructions), then run:
 ```
-confluent-hub install confluentinc/kafka-connect-s3:latest
-confluent-hub install confluentinc/kafka-connect-elasticsearch:latest
-bin/connect-standalone worker.properties connector1.properties [connector2.properties connector3.properties ...]
+confluent-5.2.1/bin/confluent-hub install confluentinc/kafka-connect-s3:latest
+confluent-5.2.1/bin/confluent-hub install confluentinc/kafka-connect-elasticsearch:latest
+confluent-5.2.1/bin/connect-standalone worker.properties connector1.properties [connector2.properties connector3.properties ...]
 # example: confluent-5.2.1/bin/connect-standalone confluent-5.2.1/etc/kafka/connect-standalone.properties confluent-5.2.1/etc/kafka-connect-s3/quickstart-s3.properties
 ```
+
+## Elasticsearch and Kibana
+
+### Requirements
+
+- At least one EC2 instance with ports open to ingress on `5601` and `9200`, see `es_kibana_server` and `elasticsearch_sg` in `terraform/main.tf`
+- Access to a Kafka Connect instance or cluster than can run a `kafka-connect-elasticsearch` worker.
+
+### Installation
+
+- Install Elasticsearch and Kibana on the instance:
+
+```
+echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list
+sudo apt-get update
+sudo apt-get install elasticsearch
+sudo apt-get install kibana
+
+```
+- Configure Elasticsearch, see [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/7.1/important-settings.html), and `elasticsearch/jvm.options`, `elasticsearch/elasticsearch.yml`, `elasticsearch/elasticsearch.service`
+- Configure your instance, see [docs](https://www.elastic.co/guide/en/elasticsearch/reference/7.1/system-config.html), but in particular, disable swapping:
+```
+sudo swapoff -a
+```
+
+- See the [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/7.1/deb.html#deb-layout) for the directory layout and location of configuration files.
+- To enable Elasticsearch logging, the `--quiet` option must be removed from the `ExecStart` command line in the `/usr/lib/systemd/system/elasticsearch.service` file
+
+
+- To start Elasticsearch, run:
+```
+
+sudo systemctl start elasticsearch.service
+```
+
+- To tail journal entries for the elasticsearch service:
+
+```
+sudo journalctl -f --unit elasticsearch
+```
+
+- Configure Kibana, see [documentation](https://www.elastic.co/guide/en/kibana/7.1/settings.html) but, in particular, ensure the following are set in `/etc/kibana/kibana.yml` (see `/elasticsearch/kibana.yml`):
+
+```
+server.host: 0.0.0.0 # bind to all interfaces
+```
+- To start Kibana, run:
+```
+sudo systemctl start kibana.service
+```
+
+- View Kibana UI in your default browser at `<ES-KIBANA-HOST>:5601`
+
