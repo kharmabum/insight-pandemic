@@ -55,6 +55,7 @@ pip3 install -r requirements.txt
 To execute the producer script in synchronous mode (waiting for responses) with verbose output, run:
 ```
 python3 producer.py -sv -t $KAKFA_TOPIC -b $KAFKA_BROKERS -f $DATA_FILE_LOCATION
+# e.g. python3 producer.py -sv -t "ed-raw" -b "ec2-35-166-62-149.us-west-2.compute.amazonaws.com" -f data/2014\ ED_Comma_Labels/DATA\ FOLDER/Public14/ED_Public_2014_LA_LBL.txt
 ```
 
 The script can also be run for several data sources concurrently on the same machine using the shell and window multiplexer, `tmux`. See [`producer-sim/spawn-producers.sh`](https://github.com/kharmabum/insight-pandemic/blob/master/producer-sim/spawn-producers.sh) for an example.
