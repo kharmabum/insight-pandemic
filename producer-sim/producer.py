@@ -47,14 +47,13 @@ class Reader(object):
                         print(e)
 
 class Producer(object):
-
+    """Delivers messages to a specified Kafka topic"""
     def __init__(self, topic: str, hosts: str, frequency: int):
         self.topic = topic
         self.frequency = frequency if frequency > 0 else float('inf')
         self.producer = KafkaProducer(
-                                bootstrap_servers=hosts,
-                                value_serializer=lambda m: json.dumps(m).encode('ascii')
-                                )
+            bootstrap_servers=hosts,
+            value_serializer=lambda m: json.dumps(m).encode('ascii'))
 
 
     def send_message(self, message: str):
@@ -68,7 +67,7 @@ class Producer(object):
 
             def on_send_error(excp):
                 if config.is_verbose:
-                    print(exc_info=excp)
+                    print(str(excp))
 
             # Post message
             future = self.producer.send(self.topic, message)
@@ -88,6 +87,7 @@ class Producer(object):
             time.sleep(1/self.frequency) # ensure frequency cap
 
 
+# Example usage: python3 producer.py -sv -t $KAKFA_TOPIC -b $KAFKA_BROKERS -f $DATA_FILE_LOCATION
 if __name__ == "__main__":
 
     # Configure argument parser
