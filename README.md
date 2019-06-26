@@ -13,7 +13,6 @@ Pandemic demonstrates a standards-based platform for monitoring distributed reso
 - Support non-technical users in adding new data sources and running ad-hoc queries
 - Provide real-time monitoring via a web interface
 
-
 For additional background refer to the [initial project proposal](https://github.com/kharmabum/insight-pandemic/blob/master/PROPOSAL.md) and [latest presentation slides](https://docs.google.com/presentation/d/1d2T31dwfiBEJT7Y83PhtmF1qy--aFn-EWGzb_LeerBU/edit#slide=id.g5b106e8208_0_76).
 
 For details on planned and tagged releases, see [Milestones](https://github.com/kharmabum/insight-pandemic/milestones) and [Releases](https://github.com/kharmabum/insight-pandemic/releases) respectively.
@@ -97,7 +96,7 @@ full EC2 and IAM pass role access, for example:
 
 ## Kafka
 
-Pandemic leverages Kafka as a distributed stream processing platform and analytics engine (see [section](#ksql) on KSQL). For each declared Avro schema, Pandemic creates a new topic in Kafka which is partitioned, by default, on the generating source (e.g. facility identifier, `fac_id`).
+Pandemic leverages Kafka as a distributed stream processing platform and analytics engine (see [section](#ksql) on KSQL).
 
 ### Requirements
 - 3 zookeeper nodes
@@ -300,17 +299,16 @@ sudo swapoff -a
 
 - To start Elasticsearch, run:
 ```
-
 sudo systemctl start elasticsearch.service
 ```
 
-- To tail journal entries for the elasticsearch service:
+- To tail journal entries for the elasticsearch service, run:
 
 ```
 sudo journalctl -f --unit elasticsearch
 ```
 
-- Configure Kibana, see [documentation](https://www.elastic.co/guide/en/kibana/7.1/settings.html) but, in particular, ensure the following are set in `/etc/kibana/kibana.yml` (see `/elasticsearch/kibana.yml`):
+- Configure Kibana, see [documentation](https://www.elastic.co/guide/en/kibana/7.1/settings.html) but in particular ensure the following are set in `kibana.yml` (see example `/elasticsearch/kibana.yml`):
 
 ```
 server.host: 0.0.0.0 # bind to all interfaces
