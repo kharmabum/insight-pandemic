@@ -16,20 +16,25 @@ Pandemic demonstrates a standards-based platform for monitoring distributed reso
 
 For additional background refer to the [initial project proposal](https://github.com/kharmabum/insight-pandemic/blob/master/PROPOSAL.md) and [latest presentation slides](https://docs.google.com/presentation/d/1d2T31dwfiBEJT7Y83PhtmF1qy--aFn-EWGzb_LeerBU/edit#slide=id.g5b106e8208_0_76).
 
+For details on planned and tagged releases, see [Milestones](https://github.com/kharmabum/insight-pandemic/milestones) and [Releases](https://github.com/kharmabum/insight-pandemic/releases) respectively.
+
 
 ## Overview
 
-Pandemic includes several interacting components. For details on planned and tagged releases, see [Milestones](https://github.com/kharmabum/insight-pandemic/milestones) and [Releases](https://github.com/kharmabum/insight-pandemic/releases) respectively.
+Pandemic includes several interacting components.
 
 1. [Data and Simulated Sources](#data)
 1. [Provisioning – Terraform](#provisioning)
 1. [Ingestion – Kafka](#kafka)
-1. [Queries – KSQL](#ksql)
+1. [Querying – KSQL](#ksql)
 1. [Connectors/Sinks – S3 and Elasticsearch](#kafka-connectors)
 1. [Dashboard - Kibana](#elasticsearch-and-kibana)
 
+Data in Pandemic moves from simulated data producers (e.g. hospitals and pharmacies) into a stream ingestion system from which it it is available to any number of consumers. At present, interactive querying and persistant stream transformations are supported via KSQL; long term storage and historical analysis are available via a consumer which pulls data into S3; and real-time monitoring and data-exploration is available via a consumer which pulls data into Elasticsearch indicies which are exposed via a [Kibana interface](http://ec2-50-112-45-96.us-west-2.compute.amazonaws.com:5601).
+
+
 ### Architecture
-<img alt="architecture" src="https://i.imgur.com/FQQ1LiA.png" width="1000px">
+<img alt="architecture" src="https://i.imgur.com/SSX4Hf2.png" width="1000px">
 
 
 ## Data
