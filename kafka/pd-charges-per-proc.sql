@@ -1,0 +1,5 @@
+CREATE TABLE PD_CHARGES_PER_PROC AS
+  SELECT proc_p, SUM(charge) AS total_charges
+  FROM PD_RAW
+  WINDOW TUMBLING (SIZE 365 DAY)
+  GROUP BY proc_p;
