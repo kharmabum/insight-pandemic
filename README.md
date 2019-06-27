@@ -269,6 +269,8 @@ confluent-5.2.1/bin/connect-standalone worker.properties connector1.properties [
 # example: confluent-5.2.1/bin/connect-standalone confluent-5.2.1/etc/kafka/connect-standalone.properties confluent-5.2.1/etc/kafka-connect-s3/quickstart-s3.properties
 ```
 
+See this [guide](https://sematext.com/blog/kafka-connect-elasticsearch-how-to/) and official [documentation](https://docs.confluent.io/current/connect/userguide.html#connect-configuring-workers) on running connectors in distributed mode.
+
 ## Elasticsearch and Kibana
 
 ### Requirements
