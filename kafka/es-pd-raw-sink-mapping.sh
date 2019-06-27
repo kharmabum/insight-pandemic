@@ -1,15 +1,14 @@
 #!/bin/sh
 
-INDEX_NAME=$1
-
-curl -X PUT "http://ec2-50-112-45-96.us-west-2.compute.amazonaws.com:9200/$INDEX_NAME" \
+curl -X PUT "http://ec2-50-112-45-96.us-west-2.compute.amazonaws.com:9200/pd-raw" \
 -H 'Content-Type: application/json; charset=utf-8' \
 -d \
 '
 {
     "mappings": {
-        "numeric_detection": true,
         "properties": {
+            "charge": { "type": "integer" },
+            "los": { "type": "integer" },
             "time":  {
                 "type":   "date",
                 "format": "epoch_millis"
@@ -17,3 +16,4 @@ curl -X PUT "http://ec2-50-112-45-96.us-west-2.compute.amazonaws.com:9200/$INDEX
         }
     }
 }'
+
