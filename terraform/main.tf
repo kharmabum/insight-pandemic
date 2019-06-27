@@ -306,7 +306,7 @@ resource "aws_eip_association" "eip_assoc_kafka" {
 
 resource "aws_instance" "control_center_server" {
   ami                         = "${lookup(var.amis, var.aws_region)}"
-  instance_type               = "t2.micro"
+  instance_type               = "t2.large"
   key_name                    = "${var.keypair_name}"
   iam_instance_profile        = "S3-Get-EC2-Instance-Profile"
   subnet_id                   = module.vpc.public_subnets[0]
@@ -318,7 +318,7 @@ resource "aws_instance" "control_center_server" {
   ]
 
   root_block_device {
-    volume_size = 10
+    volume_size = 100
     volume_type = "gp2"
   }
 
