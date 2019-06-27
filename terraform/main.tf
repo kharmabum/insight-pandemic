@@ -184,60 +184,6 @@ module "elasticsearch_sg" {
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-# Elastic IPs & VPC Endpoints
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-resource "aws_eip" "elastic_ips_kafka" {
-  vpc   = true
-  count = "${local.kafka_cluster_size}"
-}
-
-resource "aws_eip_association" "eip_assoc_kafka" {
-  instance_id   = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
-  allocation_id = "${element(aws_eip.elastic_ips_kafka.*.id, count.index)}"
-  count         = "${local.kafka_cluster_size}"
-}
-
-resource "aws_eip" "elastic_ip_ksql" {
-  vpc = true
-}
-
-resource "aws_eip_association" "eip_assoc_ksql" {
-  instance_id   = "${aws_instance.ksql_server.id}"
-  allocation_id = "${aws_eip.elastic_ip_ksql.id}"
-}
-
-resource "aws_eip" "elastic_ip_es_kibana" {
-  vpc = true
-}
-
-resource "aws_eip_association" "eip_assoc_es_kibana" {
-  instance_id   = "${aws_instance.es_kibana_server.id}"
-  allocation_id = "${aws_eip.elastic_ip_es_kibana.id}"
-}
-
-resource "aws_eip" "elastic_ip_connector" {
-  vpc = true
-}
-
-resource "aws_eip_association" "eip_assoc_connector" {
-  instance_id   = "${aws_instance.connector_server.id}"
-  allocation_id = "${aws_eip.elastic_ip_connector.id}"
-}
-
-resource "aws_vpc_endpoint" "vpc_endpoint_s3" {
-  vpc_id             = "${module.vpc.vpc_id}"
-  service_name       = "com.amazonaws.${var.aws_region}.s3"
-}
-
-resource "aws_vpc_endpoint_route_table_association" "s3_route_table_association" {
-  route_table_id  = "${module.vpc.public_route_table_ids[0]}"
-  vpc_endpoint_id = "${aws_vpc_endpoint.vpc_endpoint_s3.id}"
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
 # KSQL instance
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -269,6 +215,15 @@ resource "aws_instance" "ksql_server" {
   }
 }
 
+resource "aws_eip" "elastic_ip_ksql" {
+  vpc = true
+}
+
+resource "aws_eip_association" "eip_assoc_ksql" {
+  instance_id   = "${aws_instance.ksql_server.id}"
+  allocation_id = "${aws_eip.elastic_ip_ksql.id}"
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 # Kafka cluster
@@ -276,17 +231,16 @@ resource "aws_instance" "ksql_server" {
 
 /* Zookeeper nodes */
 resource "aws_instance" "zookeeper_nodes" {
-  ami             = "${lookup(var.amis, var.aws_region)}"
-  instance_type   = "t2.medium"
-  key_name        = "${var.keypair_name}"
-  count           = "${var.kafka_zookeeper_count}"
-
+  ami                         = "${lookup(var.amis, var.aws_region)}"
+  instance_type               = "t2.medium"
+  key_name                    = "${var.keypair_name}"
+  count                       = "${var.kafka_zookeeper_count}"
+  iam_instance_profile        = "S3-Get-EC2-Instance-Profile"
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
   vpc_security_group_ids      = [
     "${module.default_sg.this_security_group_id}",
     "${module.kafka_sg.this_security_group_id}",
-    "${module.control_center_sg.this_security_group_id}",
     "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
   ]
 
@@ -306,17 +260,16 @@ resource "aws_instance" "zookeeper_nodes" {
 
 /* Broker nodes */
 resource "aws_instance" "broker_nodes" {
-  ami             = "${lookup(var.amis, var.aws_region)}"
-  instance_type   = "t2.large"
-  key_name        = "${var.keypair_name}"
-  count           = "${var.kafka_broker_count}"
-
+  ami                         = "${lookup(var.amis, var.aws_region)}"
+  instance_type               = "t2.large"
+  key_name                    = "${var.keypair_name}"
+  count                       = "${var.kafka_broker_count}"
+  iam_instance_profile        = "S3-Get-EC2-Instance-Profile"
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
   vpc_security_group_ids      = [
     "${module.default_sg.this_security_group_id}",
     "${module.kafka_sg.this_security_group_id}",
-    "${module.control_center_sg.this_security_group_id}",
     "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
   ]
 
@@ -334,6 +287,60 @@ resource "aws_instance" "broker_nodes" {
   }
 }
 
+resource "aws_eip" "elastic_ips_kafka" {
+  vpc   = true
+  count = "${local.kafka_cluster_size}"
+}
+
+resource "aws_eip_association" "eip_assoc_kafka" {
+  instance_id   = "${element(concat(aws_instance.zookeeper_nodes.*.id, aws_instance.broker_nodes.*.id), count.index)}"
+  allocation_id = "${element(aws_eip.elastic_ips_kafka.*.id, count.index)}"
+  count         = "${local.kafka_cluster_size}"
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Control Center instance
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+resource "aws_instance" "control_center_server" {
+  ami                         = "${lookup(var.amis, var.aws_region)}"
+  instance_type               = "t2.micro"
+  key_name                    = "${var.keypair_name}"
+  iam_instance_profile        = "S3-Get-EC2-Instance-Profile"
+  subnet_id                   = module.vpc.public_subnets[0]
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [
+    "${module.default_sg.this_security_group_id}",
+    "${module.control_center_sg.this_security_group_id}",
+    "${module.open_ssh_sg.this_security_group_id}" # remove once configuration completed
+  ]
+
+  root_block_device {
+    volume_size = 10
+    volume_type = "gp2"
+  }
+
+  tags = {
+    Name        = "kafka-control-center"
+    Owner       = "${var.fellow_name}"
+    Environment = "dev"
+    Terraform   = "true"
+    role        = "control-center"
+  }
+}
+
+resource "aws_eip" "elastic_ip_control_center" {
+  vpc = true
+}
+
+resource "aws_eip_association" "eip_assoc_control_center" {
+  instance_id   = "${aws_instance.control_center_server.id}"
+  allocation_id = "${aws_eip.elastic_ip_control_center.id}"
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 # Connector instance
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -344,7 +351,6 @@ resource "aws_instance" "connector_server" {
   instance_type               = "t2.medium"
   key_name                    = "${var.keypair_name}"
   iam_instance_profile        = "S3-Sink-EC2-Instance-Profile"
-
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
   vpc_security_group_ids      = [
@@ -364,6 +370,15 @@ resource "aws_instance" "connector_server" {
     Terraform   = "true"
     role        = "worker"
   }
+}
+
+resource "aws_eip" "elastic_ip_connector" {
+  vpc = true
+}
+
+resource "aws_eip_association" "eip_assoc_connector" {
+  instance_id   = "${aws_instance.connector_server.id}"
+  allocation_id = "${aws_eip.elastic_ip_connector.id}"
 }
 
 
@@ -399,9 +414,18 @@ resource "aws_instance" "es_kibana_server" {
   }
 }
 
+resource "aws_eip" "elastic_ip_es_kibana" {
+  vpc = true
+}
+
+resource "aws_eip_association" "eip_assoc_es_kibana" {
+  instance_id   = "${aws_instance.es_kibana_server.id}"
+  allocation_id = "${aws_eip.elastic_ip_es_kibana.id}"
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-# S3 buckets
+# S3 & VPC Endpoint
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 resource "aws_s3_bucket" "insight_pandemic_s3b" {
@@ -413,4 +437,14 @@ resource "aws_s3_bucket" "insight_pandemic_s3b" {
     Environment = "dev"
     Terraform   = "true"
   }
+}
+
+resource "aws_vpc_endpoint" "vpc_endpoint_s3" {
+  vpc_id             = "${module.vpc.vpc_id}"
+  service_name       = "com.amazonaws.${var.aws_region}.s3"
+}
+
+resource "aws_vpc_endpoint_route_table_association" "s3_route_table_association" {
+  route_table_id  = "${module.vpc.public_route_table_ids[0]}"
+  vpc_endpoint_id = "${aws_vpc_endpoint.vpc_endpoint_s3.id}"
 }

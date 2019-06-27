@@ -34,3 +34,7 @@ output "kafka_connector_dns" {
 output "es_kibana_dns" {
   value = "${aws_eip.elastic_ip_es_kibana.public_dns}"
 }
+
+output "control_center_dns" {
+  value = "${aws_eip.elastic_ip_control_center.public_dns}"
+}

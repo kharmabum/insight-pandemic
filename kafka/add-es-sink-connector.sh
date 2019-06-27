@@ -1,7 +1,5 @@
 #!/bin/sh
 
-add-es-sink
-
 NAME=$1
 
 curl -X POST 'http://ec2-54-214-145-33.us-west-2.compute.amazonaws.com:8083/connectors'    \
