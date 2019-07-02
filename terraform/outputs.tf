@@ -27,14 +27,18 @@ output "kafka_ksql_dns" {
   value = "${aws_eip.elastic_ip_ksql.public_dns}"
 }
 
-output "kafka_connector_dns" {
-  value = "${aws_eip.elastic_ip_connector.public_dns}"
-}
-
 output "es_kibana_dns" {
   value = "${aws_eip.elastic_ip_es_kibana.public_dns}"
 }
 
 output "control_center_dns" {
   value = "${aws_eip.elastic_ip_control_center.public_dns}"
+}
+
+output "kafka_connect_0_dns" {
+  value = "${aws_instance.connect.0.public_dns}"
+}
+
+output "kafka_connect_1_dns" {
+  value = "${aws_instance.connect.1.public_dns}"
 }

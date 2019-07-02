@@ -342,11 +342,12 @@ resource "aws_eip_association" "eip_assoc_control_center" {
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-# Connector instance
+# Connect cluster
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-resource "aws_instance" "connector_server" {
+resource "aws_instance" "connect" {
+  count                       = "${var.kafka_connect_count}"
   ami                         = "${lookup(var.amis, var.aws_region)}"
   instance_type               = "t2.medium"
   key_name                    = "${var.keypair_name}"
@@ -360,25 +361,16 @@ resource "aws_instance" "connector_server" {
 
   root_block_device {
       volume_type = "standard"
-      volume_size = 10
+      volume_size = 20
   }
 
   tags = {
-    Name        = "connector_server"
+    Name        = "connect_server"
     Owner       = "${var.fellow_name}"
     Environment = "dev"
     Terraform   = "true"
     role        = "worker"
   }
-}
-
-resource "aws_eip" "elastic_ip_connector" {
-  vpc = true
-}
-
-resource "aws_eip_association" "eip_assoc_connector" {
-  instance_id   = "${aws_instance.connector_server.id}"
-  allocation_id = "${aws_eip.elastic_ip_connector.id}"
 }
 
 

@@ -10,3 +10,4 @@ amis = {
 
 kafka_zookeeper_count = 3
 kafka_broker_count    = 3
+kafka_connect_count   = 2

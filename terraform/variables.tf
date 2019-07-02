@@ -37,3 +37,7 @@ variable "kafka_zookeeper_count" {
 variable "kafka_broker_count" {
   description = "The number of broker nodes in the Kafka cluster"
 }
+
+variable "kafka_connect_count" {
+  description = "The number of nodes in the Kafka Connect cluster"
+}

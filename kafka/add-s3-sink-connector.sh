@@ -2,7 +2,7 @@
 
 NAME=$1
 
-curl -X POST 'http://ec2-54-214-145-33.us-west-2.compute.amazonaws.com:8083/connectors'    \
+curl -X POST 'http://ec2-54-68-129-37.us-west-2.compute.amazonaws.com:8083/connectors'    \
 -H 'Content-Type: application/json'     \
 -d                                      \
 '{
