@@ -94,7 +94,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Simulates data producers from csv formatted files.')
     parser.add_argument('-m','--max',
                         dest='frequency',
-                        type=int,
+                        type=float,
                         default=0.5,
                         help='Maximum requests per second. Defaults to 0.5.')
     parser.add_argument('-s','--synchronous-mode',
