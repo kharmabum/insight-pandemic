@@ -1,0 +1,62 @@
+{
+    "namespace": "pandemic.avro",
+    "type": "record",
+    "name": "emergency-record",
+    "fields": [
+    {
+        "name": "fac_id",
+        "type": "string",
+        "doc": "Facility Identification Number. A unique six-digit identifier assigned to each facility by the Office of Statewide Health Planning and Development."
+    },
+    {
+        "name": "facility_name",
+        "type": "string",
+        "doc": "Facility Name. The facility name documented on the official license issued by the California Department of Public Health (CDPH) Licensing and Certification Division and submitted to OSHPD’s Licensed Facility Information System (LFIS)."
+    },
+    {
+        "name": "lic_type",
+        "type": "string",
+        "doc": "License Type. The license type of the reporting facility."
+    },
+    {
+        "name": "patzip3",
+        "type": "string",
+        "doc": "Patient ZIP Code. The patient’s 3-digit ZIP Code of residence."
+    },
+    {
+        "name": "serv_y",
+        "type": "string",
+        "doc": "Service Year. The year service was provided to the patient."
+    },
+    {
+        "name": "pat_type",
+        "type": "enum",
+        "symbols" : ["A", "E"],
+        "doc": "Patient Type. The type of facility where a particular patient encounter occurred."
+    },
+    {
+        "name": "dispn",
+        "type": "string",
+        "doc": "Disposition. The consequent arrangement or event ending a patient’s encounter in the reporting facility."
+    },
+    {
+        "name": "payer",
+        "type": "string",
+        "doc": "Expected Source of Payment. The type of entity or organization expected to pay the greatest share of the patient’s bill."
+    },
+    {
+        "name": "ec_prin",
+        "type": "string",
+        "doc": "External Cause of Injury – Principal E-Code. The external cause of injury or poisoning or adverse effect code (E800- E999) which describes the mechanism that resulted in the most severe injury, poisoning, or adverse effect related to the admission."
+    },
+    {
+        "name": "dx_prin",
+        "type": "string",
+        "doc": "Principal Diagnosis. The condition, problem, or other reason established to be the chief cause of the encounter for care."
+    },
+    {
+        "name": "pr_prin",
+        "type": "string",
+        "doc": "Principal Procedure. The procedure that is surgical in nature, or carries a procedural risk, or carries an anesthetic risk and is most closely related to the principal diagnosis, as the chief reason for the encounter."
+    }]
+}

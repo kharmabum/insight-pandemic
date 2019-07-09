@@ -1,0 +1,140 @@
+{
+    "namespace": "pandemic.avro",
+    "type": "record",
+    "name": "patient-discharge-record",
+    "fields": [
+    {
+        "name": "oshpd_id",
+        "type": "string",
+        "doc": "Hospital Identification Number. A unique six-digit identifier assigned to each facility by the Office of Statewide Health Planning and Development."
+    },
+    {
+        "name": "oshpd_name",
+        "type": "string",
+        "doc": "Hospital Name. The facility name documented on the official license issued by the California Department of Public Health (CDPH) Licensing and Certification Division and submitted to OSHPD’s Licensed Facility Information System (LFIS)."
+    },
+    {
+        "name": "typ_care",
+        "type": "enum",
+        "symbols" : ["0", "1", "3", "4", "5", "6"],
+        "doc": "Type of Care. Defined by the California Health and Safety Code, this refers to the licensure of the bed occupied by an inpatient."
+    },
+    {
+        "name": "patzip3",
+        "type": "string",
+        "doc": "Patient 3-Digit ZIP Code. The patient’s 3-digit ZIP Code of residence."
+    },
+    {
+        "name": "dschyear",
+        "type": "string",
+        "doc": "Discharge Year. The year the patient was discharged."
+    },
+    {
+        "name": "los",
+        "type": "int",
+        "doc": "Length of Stay. Total number of days from admission date to discharge date."
+    },
+    {
+        "name": "adm_src",
+        "type": "string",
+        "doc": "Source of Admission. The site and licensure where the patient originated and the route by which the patient was admitted."
+    },
+    {
+        "name": "adm_type",
+        "type": "enum",
+        "symbols" : ["0", "1", "2", "3", "4"],
+        "doc": "Type of Admission. When the patient’s admission was arranged."
+    },
+    {
+        "name": "disp",
+        "type": "enum",
+        "symbols" : ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"],
+        "doc": "Disposition. The consequent arrangement or event ending a patient’s stay in the hospital."
+    },
+    {
+        "name": "pay_cat",
+        "type": "enum",
+        "symbols" : ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"],
+        "doc": "Expected Source of Payment – Payer Category. The type of entity or organization expected to pay the greatest share of the patient’s bill."
+    },
+    {
+        "name": "pay_type",
+        "type": "enum",
+        "symbols" : ["0", "1", "2", "3"],
+        "doc": "Expected Source of Payment – Type of Coverage. The type of entity or organization expected to pay the greatest share of the patient’s bill."
+    },
+    {
+        "name": "charge",
+        "type": "int",
+        "doc": "Total Charges (Rounded). Total Charges include all charges for services rendered during the length of stay for patient care at the facility, based on the hospital's full established rates (before contractual adjustments)... Total charges are reported in whole numbers and are rounded to the nearest thousand dollars ($1000)."
+    },
+    {
+        "name": "mdc",
+        "type": "string",
+        "doc": "Major Diagnostic Category. MDC code (for example, “22”). The Major Diagnostic Categories (MDC) are formed by dividing all possible principal diagnoses (from ICD-9) into 25 mutually exclusive diagnosis groupings."
+    },
+    {
+        "name": "mdc_name",
+        "type": "string",
+        "doc": "Major Diagnostic Category Name. MDC descriptive label (for example, “Burns”)."
+    },
+    {
+        "name": "msdrg",
+        "type": "string",
+        "doc": "Medicare Severity-Diagnosis Related Group. MS-DRG code (for example, “028”). One MS-DRG is assigned to each inpatient stay."
+    },
+    {
+        "name": "msdrg_name",
+        "type": "string",
+        "doc": "Medicare Severity-Diagnosis Related Group Name. MS-DRG descriptive label (for example, “Spinal Procedures W/MCC”)."
+    },
+    {
+        "name": "cat_code",
+        "type": "enum",
+        "symbols" : ["M", "S", "X"],
+        "doc": "MS-DRG Category. Each MS-DRG is categorized into one of three codes: Medical, Surgical, or Ungroupable."
+    },
+    {
+        "name": "sev_code",
+        "type": "enum",
+        "symbols" : ["M", "S", "X"],
+        "doc": "MS-DRG Severity Code. MS-DRGs are assigned based on the presence/absence of a complication/comorbidity (CC) or major complication/comorbidity (MCC)."
+    },
+    {
+        "name": "grouper",
+        "type": "string",
+        "doc": "MS-DRG Grouper Version. The MS-DRG grouper version used for any given record corresponds to the federal fiscal year."
+    },
+    {
+        "name": "ecode_p",
+        "type": "string",
+        "doc": "External Cause of Injury – Principal E-Code. The external cause of injury or poisoning or adverse effect code (E800- E999) which describes the mechanism that resulted in the most severe injury, poisoning, or adverse effect related to the admission."
+    },
+    {
+        "name": "epoa_p",
+        "type": "enum",
+        "symbols" : ["Y", "N", "W", "U", "0"],
+        "doc": "Present on Admission (POA) – Principal E-Code. An External Cause of Injury is considered present on admission (POA) if it is identified in the history and physical examination or documented in the current inpatient medical records (e.g., emergency room, initial progress, initial nursing assessment, clinic/office notes)."
+    },
+    {
+        "name": "diag_p",
+        "type": "string",
+        "doc": "Principal Diagnosis. The condition established, after study, to be the chief cause of the admission of the patient to the hospital for care."
+    },
+    {
+        "name": "poa_p",
+        "type": "enum",
+        "symbols" : ["Y", "N", "W", "U", "0"],
+        "doc": "Present on Admission (POA) – Principal Diagnosis. A condition is considered present on admission (POA) if it is identified in the history and physical examination or documented in the current inpatient medical records (e.g., emergency room, initial progress, initial nursing assessment, clinic/office notes)."
+    },
+    {
+        "name": "proc_p",
+        "type": "string",
+        "doc": "Principal Procedure. The procedure that is the one that was performed for definitive treatment rather than one performed for diagnostic or exploratory purposes or was necessary to take care of a complication."
+    },
+    {
+        "name": "proc_pdy",
+        "type": "int",
+        "doc": "Principal Procedure Days. The number of days between the patient's date of admission and date of the principal procedure."
+    }]
+}
